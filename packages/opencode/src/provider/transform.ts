@@ -425,7 +425,6 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
   const adaptiveEfforts = anthropicAdaptiveEfforts(model.api.id)
 
   if (
-    id.includes("deepseek") ||
     id.includes("minimax") ||
     // id.includes("glm") || // kilocode_change
     id.includes("mistral") ||
@@ -452,6 +451,17 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
     }
   }
   if (id.includes("grok")) return {}
+
+  if (id.includes("deepseek") && model.api.npm === "@ai-sdk/openai-compatible" && model.capabilities.reasoning) {
+    return {
+      high: {
+        reasoning_effort: "high",
+      },
+      max: {
+        reasoning_effort: "max",
+      },
+    }
+  }
 
   switch (model.api.npm) {
     case "@kilocode/kilo-gateway": // kilocode_change
@@ -826,9 +836,9 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
       if (model.api.id.includes("gpt") || /\bo[1-9]/.test(model.api.id)) {
         return Object.fromEntries(WIDELY_SUPPORTED_EFFORTS.map((effort) => [effort, { reasoningEffort: effort }]))
       }
-      return {}
-  }
-  return {}
+return {}
+}
+return {}
 }
 
 export function options(input: {
@@ -967,6 +977,14 @@ export function options(input: {
     result["gateway"] = {
       caching: "auto",
     }
+  }
+
+  if (
+    input.model.providerID.includes("deepseek") &&
+    input.model.api.npm === "@ai-sdk/openai-compatible" &&
+    input.model.capabilities.reasoning
+  ) {
+    result["thinking"] = { type: "enabled" }
   }
 
   return result
